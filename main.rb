@@ -10,8 +10,13 @@ get '/' do
 end
 
 post '/set_name' do
-  session[:player_name] = params[:player_name]
-  redirect '/game'
+  if params[:player_name] != ""
+    session[:player_name] = params[:player_name]
+    redirect '/game'
+  else
+    redirect '/'
+  end
+  
 end
 
 get '/game' do 
