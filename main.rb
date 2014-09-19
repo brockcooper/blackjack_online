@@ -138,7 +138,7 @@ get '/bet' do
 end
 
 post '/set_bet' do
-  if params[:current_bet].empty? || params[:current_bet].to_i == 0
+  if params[:current_bet].empty? || params[:current_bet].to_i <= 0
     @error = "Bet is required"
     halt erb(:bet)
   elsif session[:money] - params[:current_bet].to_i < 0
