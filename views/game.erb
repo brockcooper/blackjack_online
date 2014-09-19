@@ -1,17 +1,24 @@
-<h2>Hi <%= session[:player_name] %>! </h2>
-
+<h2>Welcome to Blackjack, <%= session[:player_name] %>! </h2>
+<h3>Your current bet is $<%= session[:current_bet]%></h3>
 
 
 
 <!-- Show dealer cards -->
 <div class="well">
   <h4>The Dealer's cards:</h4>
+  <% if @dealer_continue == false%>
     <% session[:dealer_cards].each do |card| %>
       <%= image_url(card) %>
     <% end %>
-  <p>
-    <strong>Total:</strong> <%= total(session[:dealer_cards]).to_s %>
-  </p>
+    <p>
+      <strong>Total:</strong> <%= total(session[:dealer_cards]).to_s %>
+    </p>
+  <% else %>
+    <img class='card' src='/images/cards/cover.jpg'> 
+    <%= image_url(session[:dealer_cards][1]) %>
+  <% end %>
+  
+  
 </div>
 <br/>
 
@@ -39,4 +46,26 @@
   <form id="stay-form" action="/game/player/stay" method='post'>
     <input type="submit" class="btn btn-danger" value="Stay" />
   </form>
+<% else %>
+  <% if @dealer_continue == false %>
+    <h3>
+      Would you like to play another hand?
+    </h3>
+    <form action="/" method='get'>
+      <input type="submit" class="btn btn-success" value="New Hand" />
+    </form>
+  <% else %>
+    <h3>
+      Please hit button to reveal dealer's cards:
+    </h3>
+
+
+    <form action="/game/dealer" method='post'>
+      <input type="submit" class="btn btn-success" value="Dealer" />
+    </form>
+      
+  <% end %>
+
+  
 <% end %>
+

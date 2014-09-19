@@ -1,0 +1,9 @@
+<h2>How much would you like to bet?</h2>
+
+<h4>You currently have $<%="#{session[:money]}"%></h4>
+
+<form action='/set_bet' method='post'>
+  Bet: <input type='text' name='current_bet'/>
+  <br/>
+  <input type='submit' class="btn">
+</form>
