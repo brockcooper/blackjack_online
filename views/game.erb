@@ -1,6 +1,42 @@
-<h4>Hi <%= session[:player_name]%> </h4>
+<h2>Hi <%= session[:player_name] %>! </h2>
 
-Your cards are:
-<% session[:player_cards].each do |card| %>
-	<li><%= card.to_s %></li>
+
+
+
+<!-- Show dealer cards -->
+<div class="well">
+  <h4>The Dealer's cards:</h4>
+    <% session[:dealer_cards].each do |card| %>
+      <%= image_url(card) %>
+    <% end %>
+  <p>
+    <strong>Total:</strong> <%= total(session[:dealer_cards]).to_s %>
+  </p>
+</div>
+<br/>
+
+  <!-- Show player cards -->
+  <div class="well">
+    <h4><%= session[:player_name] %>'s cards:</h4>
+      <% session[:player_cards].each do |card| %>
+        <%= image_url(card) %>
+      <% end %>
+    <p>
+      <strong>Total:</strong> <%= total(session[:player_cards]).to_s %>
+    </p>
+</div>
+
+
+<% if @show_hit_or_stay %>
+  <h3>
+    What would <%= session[:player_name] %> like to do?
+  </h3>
+
+
+  <form id="hit-form" action="/game/player/hit" method='post'>
+    <input type="submit" class="btn btn-success" value="Hit" />
+  </form>
+  <form id="stay-form" action="/game/player/stay" method='post'>
+    <input type="submit" class="btn btn-danger" value="Stay" />
+  </form>
 <% end %>
