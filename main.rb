@@ -7,7 +7,7 @@ set :sessions, true
 
 helpers do 
 
-  def make_deck(deck)
+  def make_deck(deck) # Initializes deck
     ["hearts", "diamonds", "clubs", "spades"].each do |suit|
       ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"].each do |value|
          deck << [suit, value]
@@ -16,7 +16,11 @@ helpers do
     deck.shuffle!
   end
 
-  def total(cards)
+  def deal(player_cards) #Deals one card to the defined player
+    player_cards << session[:deck].pop
+  end
+
+  def total(cards) # Calcs total of a set of cards
     sum = 0
     cards.each do |array|
       if array[1] == "king" || array[1] == "queen" || array[1] == "jack"
@@ -37,29 +41,29 @@ helpers do
     sum
   end
 
-  def image_url(card)
+  def image_url(card) # Makes correct URL for card images
     suit = card[0]
     value = card[1]
     "<img class='card' src='/images/cards/#{suit}_#{value}.jpg'>"
   end
 
-  def blackjack(cards, name)
+  def blackjack(cards, name) # Checks for blackjack
     if total(cards) == 21
-      @success = "#{name} hit blackjack!!!"
+      @win = "#{name} hit blackjack!!!"
       @show_hit_or_stay = false
     end
   end
 
-  def busted(cards, name)
+  def busted(cards, name) # Checks if player busted
     if total(cards) > 21
-      @error = "It looks like #{name} busted!" #instance variables can be accessed in layout.erb
+      @lose = "It looks like #{name} busted!" #instance variables can be accessed in layout.erb
       true
     else
       false
     end
   end
 
-  def dealer_choice(dealer, deck, user_cards, busted)
+  def dealer_choice(dealer, deck, user_cards, busted) # Logic for dealer to choose to hit or stay
     begin
       remaining_deck_value = total(deck)
       ave_card_value = remaining_deck_value / deck.size
@@ -74,22 +78,31 @@ helpers do
   end
 
 
-def check_winner(user, dealer)
-  if total(user) == total(dealer)
-    @success = "#{session[:player_name]} and the dealer tied!!!"
-  elsif total(user) < total(dealer)
-    @error = "#{session[:player_name]} lost $#{session[:current_bet]} to the dealer!!!"
-    session[:money] = session[:money] - session[:current_bet]
-  elsif total(user) > total(dealer)
-    @success =  "#{session[:player_name]} won $#{session[:current_bet]} from the dealer!!!"
+  def check_winner(user, dealer) # checks who won
+    if total(user) == total(dealer)
+      @win = "#{session[:player_name]} and the dealer tied!!!"
+    elsif total(user) < total(dealer)
+      player_lose
+    elsif total(user) > total(dealer)
+      player_win
+    end
+  end
+
+  def player_win # Displays win banner and changes money amount
+    @win =  "#{session[:player_name]} won $#{session[:current_bet]} from the dealer!!!"
     session[:money] = session[:money] + session[:current_bet]
   end
-end
+
+  def player_lose # Displays lose banner and changes money amount
+    @lose = "#{session[:player_name]} lost $#{session[:current_bet]} to the dealer!!!"
+    session[:money] = session[:money] - session[:current_bet]
+  end
 
 end
 
   
 get '/' do
+  # See if player name is set or not
   if session[:player_name]
     redirect '/bet'
   else
@@ -101,10 +114,12 @@ get '/' do
 end
 
 post '/set_name' do
+  # Checks to see if name entry is okay
   if params[:player_name].empty?
     @error = "Name is required"
     halt erb(:set_name)
   else
+    # Sets name to the session and initializes betting money for the game
     session[:player_name] = params[:player_name]
     session[:money] = 500
     redirect '/bet'
@@ -114,30 +129,38 @@ post '/set_name' do
 end
 
 get '/game' do 
+  #Initialize game variables
   @show_hit_or_stay = true
   session[:deck] = []
   session[:player_cards] = []
   session[:dealer_cards] = []
-  make_deck(session[:deck])
-  session[:player_cards] << session[:deck].pop
-  session[:dealer_cards] << session[:deck].pop
-  session[:player_cards] << session[:deck].pop
-  session[:dealer_cards] << session[:deck].pop
   session[:player_busted] = false
+  make_deck(session[:deck])
+
+  #Deal out first two cards
+  deal(session[:player_cards])
+  deal(session[:dealer_cards])
+  deal(session[:player_cards])
+  deal(session[:dealer_cards])
+  
+  #Check for player's blackjack based off first two cards
   blackjack(session[:player_cards], session[:player_name])
+
   erb :game
 end
 
 get '/bet' do 
+  # First checks to see if you have enough money, then it lets you place bet
   if session[:money] == 0
     @error = "You ran out of money!!!! Try again next time! Hit Start Over link above."
-    erb :bet
+    erb :game_over #game_over is a blank template
   else
     erb :bet
   end
 end
 
 post '/set_bet' do
+  # Checks to see if betting amount was entered correctly
   if params[:current_bet].empty? || params[:current_bet].to_i <= 0
     @error = "Bet is required"
     halt erb(:bet)
@@ -152,43 +175,43 @@ end
 
 
 post '/game/player/hit' do 
-  session[:player_cards] << session[:deck].pop
+  # Deal cards and check for blackjack or bust
+  deal(session[:player_cards])
   @show_hit_or_stay = true
   blackjack(session[:player_cards], session[:player_name])
   if busted(session[:player_cards], session[:player_name])
     @show_hit_or_stay = false
     session[:player_busted] = true
   end
-  erb :game
+  erb :game, layout: false
 end
 
 post '/game/player/stay' do 
-  @success = "#{session[:player_name]} has chosen to stay!"
+  # Stop the player's turn if he stays
+  @win = "#{session[:player_name]} has chosen to stay!"
   @show_hit_or_stay = false
-  erb :game
+  erb :game, layout: false
 end
 
 post '/game/dealer' do
+  # Figures out what the dealer wants to do
   @dealer_continue = true
   dealer_choice(session[:dealer_cards], session[:deck], session[:player_cards], session[:player_busted])
   blackjack(session[:dealer_cards], "The dealer")
-  if session[:player_busted]
-     @error = "#{session[:player_name]} lost $#{session[:current_bet]} to the dealer!!!"
-    session[:money] = session[:money] - session[:current_bet]
-  else 
-    dealer_choice(session[:dealer_cards], session[:deck], session[:player_cards], session[:player_busted])
   
-    if busted(session[:dealer_cards], "the dealer")
-      @success =  "#{session[:player_name]} won $#{session[:current_bet]} from the dealer!!!"
-      session[:money] = session[:money] + session[:current_bet]
-    else
-      check_winner(session[:player_cards], session[:dealer_cards])
-    end
+  # Checks if the player or dealer busted first, then runs check winner if no one busted
+  if session[:player_busted] #Player loses if he busted
+    player_lose
+  elsif busted(session[:dealer_cards], "the dealer")
+    player_win
+  else
+    check_winner(session[:player_cards], session[:dealer_cards])
   end
-  erb :game
+  erb :game, layout: false
 end
 
 get '/startover' do
+  # Resets game
   session[:player_name] = nil
   redirect '/'
 end

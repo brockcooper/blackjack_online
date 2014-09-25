@@ -9,3 +9,7 @@ form#stay-form{
 img.card {
 	margin: 5px;
 }
+
+.total {
+	font-size: 18px;
+}
