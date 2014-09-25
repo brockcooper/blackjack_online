@@ -59,7 +59,7 @@ helpers do
 
   def busted(cards, name) # Checks if player busted
     if total(cards) > 21
-      @lose = "It looks like #{name} busted!" #instance variables can be accessed in layout.erb
+      @lose = "Oh No! #{name} busted!" #instance variables can be accessed in layout.erb
       true
     else
       false
@@ -205,7 +205,7 @@ post '/game/dealer' do
   # Checks if the player or dealer busted first, then runs check winner if no one busted
   if session[:player_busted] #Player loses if he busted
     player_lose
-  elsif busted(session[:dealer_cards], "the dealer")
+  elsif busted(session[:dealer_cards], "The dealer")
     player_win
   else
     check_winner(session[:player_cards], session[:dealer_cards])
