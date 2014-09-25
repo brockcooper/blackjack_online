@@ -12,6 +12,14 @@
   <%if @win %>
     <div class="alert alert-success"><%=@win%></div>
   <% end %>
+
+  <% if @dealer_continue == false %>
+      <h4>Would you like to play another hand?</h4>
+      <form action="/" method='get'>
+        <input type="submit" class="btn btn-success" value="New Hand" />
+      </form>
+  <% end %>
+
   <!-- Show dealer cards -->
   <div class="well">
     <h4>The Dealer's cards:</h4>
@@ -27,6 +35,14 @@
       <%= image_url(session[:dealer_cards][1]) %>
     <% end %>
   </div>
+
+  <% if @show_hit_or_stay == false %>
+      <h4>Please hit button to reveal dealer's cards:</h4>
+      <form id="dealer-btn" action="/game/dealer" method='post'>
+        <input type="submit" class="btn btn-success" value="Dealer" />
+      </form>
+  <% end %>
+    
 
     <!-- Show player cards -->
     <div class="well" id="player_cards">
@@ -49,23 +65,6 @@
     <form id="stay-form" action="/game/player/stay" method='post'>
       <input type="submit" class="btn btn-danger" value="Stay" />
     </form>
-  <% else %>
-    <% if @dealer_continue == false %>
-      <h4>Would you like to play another hand?</h4>
-      <form action="/" method='get'>
-        <input type="submit" class="btn btn-success" value="New Hand" />
-      </form>
-    <% else %>
-      <h4>Please hit button to reveal dealer's cards:</h4>
-
-
-      <form id="dealer-btn" action="/game/dealer" method='post'>
-        <input type="submit" class="btn btn-success" value="Dealer" />
-      </form>
-        
-    <% end %>
-
-    
   <% end %>
 </div>
 

@@ -59,7 +59,7 @@ helpers do
 
   def busted(cards, name) # Checks if player busted
     if total(cards) > 21
-      @lose = "Oh No! #{name} busted!" #instance variables can be accessed in layout.erb
+      @lose = "Oh no! #{name} busted!" #instance variables can be accessed in layout.erb
       true
     else
       false
